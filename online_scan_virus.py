@@ -80,12 +80,10 @@ def upload_file(file_path) :
     return result_url
 
 def get_scan_for_linux(file_hash) :
-    print 'http://www.virscan.org//index.php?ctl=scanadmin&m=1&f='+file_hash+'&t='+str(int(time.time()*1000))
     result_linux=requests.get('http://www.virscan.org/index.php?ctl=scanadmin&m=1&f='+file_hash+'&t='+str(int(time.time()*1000)))
     return result_linux.json()
 
 def get_scan_for_windows(file_hash) :
-    print 'http://www.virscan.org//index.php?ctl=scanadmin&m=2&f='+file_hash+'&t='+str(int(time.time()*1000))
     result_windows=requests.get('http://www.virscan.org/index.php?ctl=scanadmin&m=2&f='+file_hash+'&t='+str(int(time.time()*1000)))
     return result_windows.json()
     
@@ -108,6 +106,15 @@ class json_scaner_html_resolver(HTMLParser.HTMLParser) :
         return self.data_vector
     
 def resolve_json(file_report,scan_json) :
+    return_code=False
+    scanner_name=''
+    scaner_version=''
+    scanner_virus_lib_update_time=''
+    is_virus_rate=''
+    scanner_virus_type=''
+    scanner_virus_time=''
+    scan_location=''
+    scanner_is_virus=False
     if scan_json.get('state') is 0 :
         html_resolver=json_scaner_html_resolver()
         html_resolver.feed(scan_json.get('content'))
@@ -118,6 +125,7 @@ def resolve_json(file_report,scan_json) :
             scaner_version=scanner_information[1]
             if scanner_information[2].strip()=='Found nothing' :
                 scanner_is_virus=True
+                scanner_virus_type=scanner_information[2].strip()
             else :
                 scanner_is_virus=False
             scanner_virus_time=scanner_information[3]
@@ -137,33 +145,56 @@ def resolve_json(file_report,scan_json) :
         scan_location=scan_json.get('tips_place')
         scan_location=scan_location[scan_location.find('>')+1:]
         scan_location=scan_location[:scan_location.find('<')]
-        print 'scanner:'+scanner_name+'-'+scaner_version+'('+scanner_virus_lib_update_time+')',
-        print str(scanner_is_virus)+' ',
-        print is_virus_rate+' '+scanner_virus_time+'s '+scan_location
     elif scan_json.get('state') is 2 :
-        print 'scan error'
+        pass  #  scan error
     if scan_json.get('over') :
-        return True
-    return False
+        return_code=True
+    if __name__=='__main__' :
+        print 'scanner:'+scanner_name+'-'+scaner_version+'('+scanner_virus_lib_update_time+')',
+        if scanner_is_virus :
+            print 'Virus Alarm:'+scanner_virus_type,
+        else :
+            print 'Is not Virus',
+        print is_virus_rate+' '+scanner_virus_time+'s '+scan_location
+    return (return_code,
+                {
+                    'scanner_name':scanner_name,
+                    'scaner_version':scaner_version,
+                    'scanner_virus_lib_update_time':scanner_virus_lib_update_time,
+                    'scanner_is_virus':scanner_is_virus,
+                    'is_virus_rate':is_virus_rate,
+                    'scanner_virus_type':scanner_virus_type,
+                    'scanner_virus_time':scanner_virus_time,
+                    'scan_location':scan_location
+                }
+            )
     
 def online_analases(file_path) :
-    analase_url=upload_file(file_path)
-    file_hash=analase_url[analase_url.rfind('/')+1:]
-    file_report=[]
-    request=requests.get('http://www.virscan.org/scan/'+file_hash)  #  server scan init 
-    while True :
-        if resolve_json(file_report,get_scan_for_linux(file_hash)) :  #  server scan
-            break
-        if resolve_json(file_report,get_scan_for_windows(file_hash)) :
-            break
+    if os.path.getsize(file_path)<15*1024*1024 :  #  online scan file size limit 15 MB
+        analase_url=upload_file(file_path)
+        file_hash=analase_url[analase_url.rfind('/')+1:]
+        file_report=[]
+        request=requests.get('http://www.virscan.org/scan/'+file_hash)  #  server scan init 
+        while True :
+            is_scan_success,signal_scan_report=resolve_json(file_report,get_scan_for_linux(file_hash))  #  start scan
+            file_report.append(file_report)
+            if is_scan_success :
+                break
+            is_scan_success,signal_scan_report=resolve_json(file_report,get_scan_for_windows(file_hash))
+            file_report.append(file_report)
+            if is_scan_success :
+                break
+        return file_report
+    return None
 
-if len(sys.argv) is 2 :
-    if os.exists(sys.argv[1]) and os.isfile(sys.argv[1]) :
-        online_analases(sys.argv[1])
+if __name__=='__main__' :
+    if len(sys.argv) is 2 :
+        if os.path.exists(sys.argv[1]) and os.path.isfile(sys.argv[1]) :
+            online_analases(sys.argv[1])
+        else :
+            print 'this is not a valid file'
     else :
-        print 'this is not a valid file'
-else :
-    print 'Using:'
-    print '    online_scan_virus.py %file_path%'
-    print 'Example:'
-    print '    online_scan_virus.py C:\Windows\System32\kernel32.dll'
+        print 'Using:'
+        print '    online_scan_virus.py %file_path%'
+        print 'Example:'
+        print '    online_scan_virus.py C:\Windows\System32\kernel32.dll'
