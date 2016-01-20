@@ -177,11 +177,11 @@ def online_analases(file_path) :
         request=requests.get('http://www.virscan.org/scan/'+file_hash)  #  server scan init 
         while True :
             is_scan_success,signal_scan_report=resolve_json(file_report,get_scan_for_linux(file_hash))  #  start scan
-            file_report.append(file_report)
+            file_report.append(signal_scan_report)
             if is_scan_success :
                 break
             is_scan_success,signal_scan_report=resolve_json(file_report,get_scan_for_windows(file_hash))
-            file_report.append(file_report)
+            file_report.append(signal_scan_report)
             if is_scan_success :
                 break
         return file_report

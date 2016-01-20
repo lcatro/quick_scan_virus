@@ -4,9 +4,9 @@
 
 		quick_scan_virus.py file_path|directory_path|all
     Example:
-		quick_scan_virus.py C:\\Windows\\system32\\kernel32.dll
+		quick_scan_virus.py C:\Windows\system32\kernel32.dll
             scan this file
-        quick_scan_virus.py C:\\Windows\\system32\\
+        quick_scan_virus.py C:\Windows\system32\
             scan all files of this directory 
         quick_scan_virus.py all
             scan all files in your computer

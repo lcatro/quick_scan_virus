@@ -23,7 +23,8 @@ if __name__=='__main__' :
             print 'Now get online scanning!'
             online_scan_is_virus=False
             print 'Online Scan Virus Alarm Resport :'
-            for scanner_report_index in online_scan_virus.online_analases(sys.argv[1]) :
+            scanner_report=online_scan_virus.online_analases(sys.argv[1])
+            for scanner_report_index in scanner_report :
                 if scanner_report_index.get('is_virus') :
                     print '  Virus Scanner:'+scanner_report_index.get('scanner_name')+'-',
                     print scanner_report_index.get('scaner_version')+'(',
