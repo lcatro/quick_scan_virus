@@ -91,9 +91,10 @@ if len(sys.argv) is 2 :
 else :
     print 'Using:'
     print '    quick_scan_virus.py %file_path%|%directory_path%|all'
+    print 'Example:'
     print '    quick_scan_virus.py C:\\Windows\\system32\\kernel32.dll'
     print '        scan this file'
     print '    quick_scan_virus.py C:\\Windows\\system32\\'
     print '        scan all files of this directory '
     print '    quick_scan_virus.py all'
-    print '        scan all files in your computer'
+    print '        scan all files in your computer'  
